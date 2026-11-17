@@ -1,0 +1,268 @@
+---
+title: "10-amaliy mashg'ulot"
+author: "Xabiliy Shohyora"
+date: "2026-11-10"
+output: html_document
+---
+
+9.3 Kuzatilgan ahamiyat darajasi:
+p‑qiymatlar
+Ta’rif. p‑qiymat — bu 𝐻0
+rost deb faraz qilgan holda, kuzatilgan
+qiymatga kamida shuncha ekstremal bo‘lgan statistikani (muqobil
+yo‘nalishida) olish ehtimoli.
+Talqin. Kichik p‑qiymatlar 𝐻0 ga qarshi dalil beradi. Ular 𝐻0
+rost
+bo‘lish ehtimoli emas.
+R yordamchi funksiyalari (bir/ikki tomonlama).
+```{r}
+# z va t sinovlari uchun p‑qiymat yordamchilari
+pval_z <- function(z_obs, alternative = c("two.sided", "less",
+"greater")) {
+alternative <- match.arg(alternative)
+if (alternative == "two.sided")
+2 * pnorm(-abs(z_obs)) else if (alternative == "greater")
+1 - pnorm(z_obs) else pnorm(z_obs)
+}
+pval_t <- function(t_obs, df, alternative = c("two.sided", "less",
+"greater")) {
+alternative <- match.arg(alternative)
+if (alternative == "two.sided")
+2 * pt(-abs(t_obs), df) else if (alternative == "greater")
+1 - pt(t_obs, df) else pt(t_obs, df)
+}
+pval_z(2.1, "two.sided")
+## [1] 0.03572884
+pval_t(-1.9, df = 18, alternative = "greater")
+## [1] 0.9632128
+```
+9.4 Bosh o‘rtacha haqidagi gipoteza:
+normal (𝑧) statistikasi
+Qachon ishlatiladi. Bosh SKO 𝜎 ma’lum; bosh to‘plam normal yoki
+𝑛 ≳ 30.
+Gipotezalar. 𝐻0
+∶ 𝜇 = 𝜇0 va mos 𝐻1
+.
+Statistika.
+𝑍 = 𝑋 − 𝜇 ̄
+0
+𝜎/√
+𝑛
+∼ 𝑁(0, 1) (𝐻0
+ostida).
+R (qo‘lda 𝑧‑sinov, paketlarsiz).
+```{r}
+z_test_mean <- function(x, mu0, sigma, alternative = c("two.sided",
+"less", "greater")) {
+alternative <- match.arg(alternative)
+n <- length(x)
+xbar <- mean(x)
+z <- (xbar - mu0)/(sigma/sqrt(n))
+p <- pval_z(z, alternative)
+c(statistic = z, p_value = p, mean = xbar, n = n)
+}
+x <- rnorm(40, mean = 101, sd = 15) # misol ma'lumotlar
+z_test_mean(x, mu0 = 100, sigma = 15, alternative = "two.sided")
+## statistic p_value mean n
+## 0.5481223 0.5836079 101.2999863 40.0000000
+```
+9.5 Bosh o‘rtacha haqidagi gipoteza:
+Studentning 𝑡‑statistikasi
+Qachon ishlatiladi. 𝜎 noma’lum. Bosh to‘plam normal yoki 𝑛 yetarlicha
+katta.
+Statistika.
+𝑇 = 𝑋 − 𝜇 ̄
+0
+𝑆/√
+𝑛
+∼ 𝑡𝜈
+, 𝜈 = 𝑛 − 1 (𝐻0
+).
+R (bir tanlamali 𝑡‑sinov).
+```{r}
+y <- rnorm(22, mean = 50, sd = 8)
+# Ikki tomonlama sinov H0: mu=50
+res2 <- t.test(y, mu = 50)
+# O'ng‑dumli sinov H0: mu<=50 ga qarshi H1: mu>50
+resR <- t.test(y, mu = 50, alternative = "greater")
+list(two_sided = res2$p.value, right_tailed = resR$p.value, confint = res2$conf.int)
+## $two_sided
+## [1] 0.2343165
+##
+## $right_tailed
+## [1] 0.8828417
+##
+## $confint
+## [1] 45.37143 51.19785
+## attr(,"conf.level")
+## [1] 0.95
+
+```
+9.6 Katta tanlama uchun bosh ulush
+haqidagi gipoteza
+Qachon ishlatiladi. Katta hisoblar: 𝑛 ̂𝑝 ≥ 10 va 𝑛(1 − ̂𝑝) ≥ 10.
+Nol gipoteza. 𝐻0
+∶ 𝑝 = 𝑝0
+.
+Vald 𝑧 statistikasi.
+𝑍 = ̂𝑝 − 𝑝0
+√𝑝0
+(1 − 𝑝0
+)/𝑛
+.
+R (qo‘lda va prop.test orqali).
+```{r}
+prop_z_test <- function(x, n, p0, alternative = c("two.sided",
+"less", "greater")) {
+alternative <- match.arg(alternative)
+phat <- x/n
+z <- (phat - p0)/sqrt(p0 * (1 - p0)/n)
+p <- pval_z(z, alternative)
+c(statistic = z, p_value = p, phat = phat, n = n)
+}
+x <- 62
+n <- 120
+p0 <- 0.5
+manual <- prop_z_test(x, n, p0, alternative = "two.sided")
+score <- prop.test(x, n, p = p0, alternative = "two.sided") # skor (Wilson) sinovi
+list(manual = manual, prop_test_p = score$p.value)
+## $manual
+## statistic p_value phat n
+## 0.3651484 0.7150007 0.5166667 120.0000000
+##
+## $prop_test_p
+## [1] 0.7841912
+
+```
+9.7 II tur xatolik ehtimollari va quvvatni
+hisoblash
+Misol tariqasida ma’lum 𝜎 bilan o‘rtacha uchun 𝑧‑sinovni olamiz (rejalashtirish bosqichi). 𝐻0
+∶ 𝜇 = 𝜇0
+, haqiqiy qiymat 𝜇1 bo‘lsin.
+Ikki tomonlama sinov (𝛼 daraja). |𝑍| > 𝑧𝛼/2 bo‘lsa rad etamiz.
+𝜇 = 𝜇1
+ostida
+𝑍 ∼ 𝑁(𝜇1 − 𝜇0
+𝜎/√
+𝑛
+, 1) .
+Quvvat = 1 − 𝛽(𝜇1
+):
+1 − 𝛽 = Pr (|𝑍| > 𝑧𝛼/2 ∣ 𝜇 = 𝜇1
+) = 1 − Φ(𝑧𝛼/2 − Δ) + Φ(−𝑧𝛼/2 − Δ) ,
+bu yerda Δ = (𝜇1 − 𝜇0
+)/(𝜎/√
+𝑛), Φ — standart normal KD (CDF).
+R (quvvat egrilari va maqsad quvvat uchun 𝑛).
+```{r}
+power_z_mean <- function(n, sigma, mu0, mu1, alpha = 0.05, two.sided = TRUE) {
+zcrit <- if (two.sided)
+qnorm(1 - alpha/2) else qnorm(1 - alpha)
+delta <- (mu1 - mu0)/(sigma/sqrt(n))
+if (two.sided) {
+1 - (pnorm(zcrit - delta) - pnorm(-zcrit - delta))
+} else {
+# odatda o'ng‑dumli; chap‑dumli uchun (mu1-mu0)
+# ishorasini almashtiring
+1 - pnorm(zcrit - delta)
+}
+}
+n_for_power_z <- function(target_power, sigma, mu0, mu1, alpha = 0.05,
+two.sided = TRUE) {
+uniroot(function(n) power_z_mean(n, sigma, mu0, mu1, alpha,
+two.sided) - target_power, c(2, 1e+06))$root |>
+ceiling()
+}
+sigma <- 10
+mu0 <- 100
+mu1 <- 103
+alpha <- 0.05
+n_needed <- n_for_power_z(0.8, sigma, mu0, mu1, alpha, two.sided = TRUE)
+# tezkor quvvat egri chizig'i (n bo'yicha)
+ns <- seq(10, 400, by = 10)
+pows <- sapply(ns, power_z_mean, sigma = sigma, mu0 = mu0, mu1 = mu1,
+alpha = alpha, two.sided = TRUE)
+head(data.frame(n = ns, power = pows))
+## n power
+## 1 10 0.1577560
+## 2 20 0.2686618
+## 3 30 0.3758563
+## 4 40 0.4751009
+## 5 50 0.5641160
+## 6 60 0.6420152
+```
+9.8 Bosh dispersiya haqidagi gipoteza
+(ixtiyoriy)
+Bosh to‘plam normal deb faraz qilinadi. 𝐻0
+∶ 𝜎2 = 𝜎2
+0 ni tekshiramiz.
+Statistika.
+𝜒
+2 =
+(𝑛 − 1)𝑆2
+𝜎
+2
+0
+∼ 𝜒2
+𝜈
+, 𝜈 = 𝑛 − 1.
+Rad etish mintaqalari muqobilga bog‘liq: * Ikki tomonlama: 𝜒
+2 <
+𝜒
+2
+𝛼/2, 𝜈 yoki 𝜒
+2 > 𝜒2
+1−𝛼/2, 𝜈 bo‘lsa rad etiladi. * O‘ng‑dumli (𝜎
+2 > 𝜎2
+0
+):
+𝜒
+2 > 𝜒2
+1−𝛼, 𝜈 bo‘lsa rad etiladi. * Chap‑dumli (𝜎
+2 < 𝜎2
+0
+): 𝜒
+2 < 𝜒2
+𝛼, 𝜈 bo‘lsa
+rad etiladi.
+R (p‑qiymatni qo‘lda).
+```{r}
+chi2_test_var <- function(x, sigma0_sq, alternative = c("two.sided",
+"less", "greater")) {
+alternative <- match.arg(alternative)
+n <- length(x)
+s2 <- var(x)
+df <- n - 1
+chi2 <- df * s2/sigma0_sq
+if (alternative == "two.sided") {
+p <- 2 * min(pchisq(chi2, df), 1 - pchisq(chi2, df))
+} else if (alternative == "greater") {
+p <- 1 - pchisq(chi2, df)
+} else {
+p <- pchisq(chi2, df)
+}
+c(statistic = chi2, df = df, s2 = s2, p_value = p)
+}
+z <- rnorm(18, mean = 0, sd = 4)
+chi2_test_var(z, sigma0_sq = 16, alternative = "two.sided")
+## statistic df s2 p_value
+## 17.3975643 17.0000000 16.3741782 0.8555224
+```
+9.9 Ishlangan misollar
+Misol A (ikki tomonlama 𝑡‑sinov)
+15 ta cho‘zilish mustahkamligi (MPa) o‘lchovi: ̄𝑥 = 47.3, 𝑠 = 5.2.
+𝐻0
+∶ 𝜇 = 50 ni 𝛼 = 0.05 da tekshiring.
+```{r}
+n <- 15
+xbar <- 47.3
+s <- 5.2
+mu0 <- 50
+T <- (xbar - mu0)/(s/sqrt(n))
+df <- n - 1
+p <- 2 * pt(-abs(T), df)
+c(statistic = T, df = df, p_value = p)
+## statistic df p_value
+## -2.01097212 14.00000000 0.06399397
+```
+

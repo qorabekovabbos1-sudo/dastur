@@ -1,0 +1,373 @@
+---
+title: "10-amaliy mashg`ulot"
+author: "Dilnurabonu Valixonova"
+date: "2026-11-10"
+output: html_document
+---
+
+# 9.1 Gipoteza sinovining elementlari
+• Nol gipoteza 𝐻0: status‑kvo da’vo (masalan, 𝜇 = 𝜇0).
+• Muqobil gipoteza 𝐻1 (yoki 𝐻𝑎): dalil izlayotgan da’vo (bir tomon-
+lama yoki ikki tomonlama).
+• Sinov statistikasi: dalillarni bitta son ko‘rinishida jamlaydi; 𝐻0
+ostida uning taqsimoti ma’lum.
+• Rad etish (kritik) mintaqasi: statistik qiymatlari uchun biz 𝐻0
+ni rad etamiz.
+• Ahamiyat darajasi 𝛼: I tur xatolik ehtimoli (haqiqiy 𝐻0 ni rad
+etish).
+• II tur xatolik 𝛽: yolg‘on 𝐻0 ni rad etmaslik. Quvvat = 1 − 𝛽.
+
+Qoidalar odatda 𝛼 ni boshqarish va quvvatni maksimal qilish
+tamoyiliga tayanadi.
+# 9.2 Gipotezalarni tuzish va rad etish
+mintaqasini belgilash
+Muqobil gipotezani ilmiy savol ma’nosidan kelib chiqib tanlang.
+
+• Ikki tomonlama: 𝐻0 ∶ 𝜇 = 𝜇0 ga qarshi 𝐻1 ∶ 𝜇 ≠ 𝜇0.
+• O‘ng‑dumli: 𝐻0 ∶ 𝜇 ≤ 𝜇0 ga qarshi 𝐻1 ∶ 𝜇 > 𝜇0.
+• Chap‑dumli: 𝐻0 ∶ 𝜇 ≥ 𝜇0 ga qarshi 𝐻1 ∶ 𝜇 < 𝜇0.
+
+Kritik qiymatlar usuli. Tanlangan 𝛼 uchun, statistika 𝛼 dum(lar)i
+ga tushsa, 𝐻0 rad etiladi.
+IO bilan bog‘liqlik. Ikki tomonlama sinovda 𝛼 darajada 𝐻0 rad
+etiladi, agar parametr uchun 100(1−𝛼)% ishonch oralig‘i nol qiymatini
+qamrab olmasa.
+# 9.3 Kuzatilgan ahamiyat darajasi:
+p‑qiymatlar
+Ta’rif. p‑qiymat — bu 𝐻0 rost deb faraz qilgan holda, kuzatilgan
+qiymatga kamida shuncha ekstremal bo‘lgan statistikani (muqobil
+yo‘nalishida) olish ehtimoli.
+Talqin. Kichik p‑qiymatlar 𝐻0 ga qarshi dalil beradi. Ular 𝐻0 rost
+bo‘lish ehtimoli emas.
+R yordamchi funksiyalari (bir/ikki tomonlama).
+```{r}
+# z va t sinovlari uchun p‑qiymat yordamchilari
+pval_z <- function(z_obs, alternative = c("two.sided", "less",
+"greater")) {
+alternative <- match.arg(alternative)
+if (alternative == "two.sided")
+2 * pnorm(-abs(z_obs)) else if (alternative == "greater")
+1 - pnorm(z_obs) else pnorm(z_obs)
+}
+pval_t <- function(t_obs, df, alternative = c("two.sided", "less",
+"greater")) {
+alternative <- match.arg(alternative)
+if (alternative == "two.sided")
+2 * pt(-abs(t_obs), df) else if (alternative == "greater")
+1 - pt(t_obs, df) else pt(t_obs, df)
+}
+pval_z(2.1, "two.sided")
+```
+## [1] 0.03572884
+```{r}
+pval_t(-1.9, df = 18, alternative = "greater")
+```
+## [1] 0.9632128
+# 9.4 Bosh o‘rtacha haqidagi gipoteza:
+normal (𝑧) statistikasi
+Qachon ishlatiladi. Bosh SKO 𝜎 ma’lum; bosh to‘plam normal yoki
+𝑛 ≳ 30.
+Gipotezalar. 𝐻0 ∶ 𝜇 = 𝜇0 va mos 𝐻1.
+Statistika.
+
+𝑍 =
+
+𝑋̄ − 𝜇0
+𝜎/√𝑛 ∼ 𝑁(0, 1) (𝐻0 ostida).
+R (qo‘lda 𝑧‑sinov, paketlarsiz).
+```{r}
+z_test_mean <- function(x, mu0, sigma, alternative = c("two.sided",
+"less", "greater")) {
+alternative <- match.arg(alternative)
+n <- length(x)
+xbar <- mean(x)
+z <- (xbar - mu0)/(sigma/sqrt(n))
+p <- pval_z(z, alternative)
+c(statistic = z, p_value = p, mean = xbar, n = n)
+}
+x <- rnorm(40, mean = 101, sd = 15) # misol ma'lumotlar
+z_test_mean(x, mu0 = 100, sigma = 15, alternative = "two.sided")
+```
+## statistic p_value mean n
+## 0.5481223 0.5836079 101.2999863 40.0000000
+Kritik‑qiymat va p‑qiymat usullari bir xil 𝛼 va muqobil uchun mos
+keladi.
+# 9.5 Bosh o‘rtacha haqidagi gipoteza:
+Studentning 𝑡‑statistikasi
+Qachon ishlatiladi. 𝜎 noma’lum. Bosh to‘plam normal yoki 𝑛 yetarlicha
+katta.
+Statistika.
+
+𝑇 =
+
+𝑋̄ − 𝜇0
+𝑆/√𝑛 ∼ 𝑡𝜈, 𝜈 = 𝑛 − 1 (𝐻0).
+R (bir tanlamali 𝑡‑sinov).
+
+
+9. Yagona tanlanmaga asoslangan xulosalar: Gipotezalarni
+tekshirish
+```{r}
+y <- rnorm(22, mean = 50, sd = 8)
+# Ikki tomonlama sinov H0: mu=50
+res2 <- t.test(y, mu = 50)
+# O'ng‑dumli sinov H0: mu<=50 ga qarshi H1: mu>50
+resR <- t.test(y, mu = 50, alternative = "greater")
+list(two_sided = res2$p.value, right_tailed = resR$p.value, confint = res2$conf.int)
+```
+## $two_sided
+## [1] 0.2343165
+##
+## $right_tailed
+## [1] 0.8828417
+##
+## $confint
+## [1] 45.37143 51.19785
+## attr(,"conf.level")
+## [1] 0.95
+Diagnostika. Kichik 𝑛 lar uchun gistogramma/QQ‑grafik yoki
+shapiro.test(y) ni tekshiring.
+# 9.6 Katta tanlama uchun bosh ulush
+haqidagi gipoteza
+Qachon ishlatiladi. Katta hisoblar: 𝑛𝑝̂ ≥ 10 va 𝑛(1 − 𝑝̂) ≥ 10.
+Nol gipoteza. 𝐻0 ∶ 𝑝 = 𝑝0.
+Vald 𝑧 statistikasi.
+𝑍 = 𝑝̂ − 𝑝0
+√𝑝0(1 − 𝑝0)/𝑛.
+R (qo‘lda va prop.test orqali).
+```{r}
+prop_z_test <- function(x, n, p0, alternative = c("two.sided",
+"less", "greater")) {
+alternative <- match.arg(alternative)
+phat <- x/n
+z <- (phat - p0)/sqrt(p0 * (1 - p0)/n)
+p <- pval_z(z, alternative)
+c(statistic = z, p_value = p, phat = phat, n = n)
+}
+x <- 62
+n <- 120
+p0 <- 0.5
+manual <- prop_z_test(x, n, p0, alternative = "two.sided")
+score <- prop.test(x, n, p = p0, alternative = "two.sided") # skor (Wilson) sinovi
+list(manual = manual, prop_test_p = score$p.value)
+```
+## $manual
+## statistic p_value phat n
+## 0.3651484 0.7150007 0.5166667 120.0000000
+##
+## $prop_test_p
+## [1] 0.7841912
+
+# 9.7 II tur xatolik ehtimollari va quvvatni
+hisoblash
+Misol tariqasida ma’lum 𝜎 bilan o‘rtacha uchun 𝑧‑sinovni olamiz (re-
+jalashtirish bosqichi). 𝐻0 ∶ 𝜇 = 𝜇0, haqiqiy qiymat 𝜇1 bo‘lsin.
+Ikki tomonlama sinov (𝛼 daraja). |𝑍| > 𝑧𝛼/2 bo‘lsa rad etamiz.
+𝜇 = 𝜇1 ostida
+𝑍 ∼ 𝑁(𝜇1 − 𝜇0
+
+𝜎/√𝑛 , 1) .
+
+Quvvat = 1 − 𝛽(𝜇1):
+1 − 𝛽 = Pr (|𝑍| > 𝑧𝛼/2 ∣ 𝜇 = 𝜇1) = 1 − Φ(𝑧𝛼/2 − Δ) + Φ(−𝑧𝛼/2 − Δ) ,
+bu yerda Δ = (𝜇1 − 𝜇0)/(𝜎/√𝑛), Φ — standart normal KD (CDF).
+R (quvvat egrilari va maqsad quvvat uchun 𝑛).
+```{r}
+power_z_mean <- function(n, sigma, mu0, mu1, alpha = 0.05, two.sided = TRUE) {
+zcrit <- if (two.sided)
+qnorm(1 - alpha/2) else qnorm(1 - alpha)
+delta <- (mu1 - mu0)/(sigma/sqrt(n))
+if (two.sided) {
+1 - (pnorm(zcrit - delta) - pnorm(-zcrit - delta))
+} else {
+# odatda o'ng‑dumli; chap‑dumli uchun (mu1-mu0)
+# ishorasini almashtiring
+1 - pnorm(zcrit - delta)
+}
+}
+n_for_power_z <- function(target_power, sigma, mu0, mu1, alpha = 0.05,
+two.sided = TRUE) {
+uniroot(function(n) power_z_mean(n, sigma, mu0, mu1, alpha,
+two.sided) - target_power, c(2, 1e+06))$root |>
+ceiling()
+}
+sigma <- 10
+mu0 <- 100
+mu1 <- 103
+alpha <- 0.05
+n_needed <- n_for_power_z(0.8, sigma, mu0, mu1, alpha, two.sided = TRUE)
+# tezkor quvvat egri chizig'i (n bo'yicha)
+ns <- seq(10, 400, by = 10)
+pows <- sapply(ns, power_z_mean, sigma = sigma, mu0 = mu0, mu1 = mu1,
+alpha = alpha, two.sided = TRUE)
+head(data.frame(n = ns, power = pows))
+```
+## n power
+## 1 10 0.1577560
+## 2 20 0.2686618
+## 3 30 0.3758563
+## 4 40 0.4751009
+## 5 50 0.5641160
+## 6 60 0.6420152
+Izoh. 𝑡‑sinovlar (𝜎 noma’lum) uchun quvvat no‑markaziy
+𝑡 taqsimotiga bog‘liq; o‘rtacha/kattaroq 𝑛 lar uchun
+𝑧‑rejalashtirish yaxshi yaqinlashuv beradi.
+
+9. Yagona tanlanmaga asoslangan xulosalar: Gipotezalarni
+tekshirish
+
+# 9.8 Bosh dispersiya haqidagi gipoteza
+(ixtiyoriy)
+Bosh to‘plam normal deb faraz qilinadi. 𝐻0 ∶ 𝜎2 = 𝜎02 ni tekshiramiz.
+Statistika.
+𝜒2 = (𝑛 − 1)𝑆
+
+2
+𝜎02 ∼ 𝜒
+
+2𝜈, 𝜈 = 𝑛 − 1.
+Rad etish mintaqalari muqobilga bog‘liq: * Ikki tomonlama: 𝜒2 <
+𝜒2𝛼/2, 𝜈 yoki 𝜒2 > 𝜒21−𝛼/2, 𝜈 bo‘lsa rad etiladi. * O‘ng‑dumli (𝜎2 > 𝜎02):
+𝜒2 > 𝜒21−𝛼, 𝜈 bo‘lsa rad etiladi. * Chap‑dumli (𝜎2 < 𝜎02): 𝜒2 < 𝜒2𝛼, 𝜈 bo‘lsa
+rad etiladi.
+R (p‑qiymatni qo‘lda).
+```{python}
+chi2_test_var <- function(x, sigma0_sq, alternative = c("two.sided",
+"less", "greater")) {
+alternative <- match.arg(alternative)
+n <- length(x)
+s2 <- var(x)
+df <- n - 1
+chi2 <- df * s2/sigma0_sq
+if (alternative == "two.sided") {
+p <- 2 * min(pchisq(chi2, df), 1 - pchisq(chi2, df))
+} else if (alternative == "greater") {
+p <- 1 - pchisq(chi2, df)
+} else {
+p <- pchisq(chi2, df)
+}
+c(statistic = chi2, df = df, s2 = s2, p_value = p)
+}
+z <- rnorm(18, mean = 0, sd = 4)
+chi2_test_var(z, sigma0_sq = 16, alternative = "two.sided")
+```
+## statistic df s2 p_value
+## 17.3975643 17.0000000 16.3741782 0.8555224
+# 9.9 Ishlangan misollar
+Misol A (ikki tomonlama 𝑡‑sinov)
+15 ta cho‘zilish mustahkamligi (MPa) o‘lchovi: 𝑥̄ = 47.3, 𝑠 = 5.2.
+𝐻0 ∶ 𝜇 = 50 ni 𝛼 = 0.05 da tekshiring.
+```{python}
+n <- 15
+xbar <- 47.3
+s <- 5.2
+mu0 <- 50
+T <- (xbar - mu0)/(s/sqrt(n))
+df <- n - 1
+p <- 2 * pt(-abs(T), df)
+c(statistic = T, df = df, p_value = p)
+```
+## statistic df p_value
+## -2.01097212 14.00000000 0.06399397
+Misol B (bir tomonlama ulush sinovi)
+𝑛 = 120 da 𝑥 = 62 muvaffaqiyat. 𝐻0 ∶ 𝑝 = 0.5 ga qarshi 𝐻1 ∶ 𝑝 > 0.5 ni
+tekshiring.
+```{r}
+prop_z_test(62, 120, 0.5, alternative = "greater")
+```
+## [1] 0.3920956
+Misol C (dispersiya sinovi)
+Normal jarayon uchun 𝑛 = 16 da 𝑠2 = 5.2. 𝐻0 ∶ 𝜎2 = 4 ga qarshi ikki
+tomonlama 𝐻1 ni tekshiring.
+```{r}
+s2 <- 5.2
+n <- 16
+df <- n - 1
+sigma0_sq <- 4
+chi2 <- df * s2/sigma0_sq
+p <- 2 * min(pchisq(chi2, df), 1 - pchisq(chi2, df))
+c(statistic = chi2, p_value = p)
+```
+## statistic p_value
+## 19.5000000 0.3839269
+# 9.10 Mashqlar (o‘zini tekshirish)
+Ko‘rsatma. Masalalarni yeching. HTML chiqishda yechimni
+ko‘rish uchun ustiga bosing.
+
+1. (H_1 ni tuzish) Qoidaga ko‘ra lampaning xizmat muddati kamida
+500 soat bo‘lishi kerak. Yomonlashuvni aniqlash uchun 𝐻0 va 𝐻1
+ni tuzing.
+
+Yechim
+𝐻0 ∶ 𝜇 ≥ 500 ga qarshi 𝐻1 ∶ 𝜇 < 500 (chap‑dumli sinov).
+2. (Kritik mintaqa, 𝑧) 𝑛 = 36, 𝜎 = 2.4, 𝛼 = 0.02 (ikki tomonlama).
+𝐻0 ∶ 𝜇 = 51 uchun rad etish qoidasini yozing.
+Yechim
+|𝑍| > 𝑧0.01 = 2.326 bo‘lsa rad etiladi; bu yerda 𝑍 = (𝑋̄ −
+51)/(2.4/
+
+√
+
+36).
+
+
+9. Yagona tanlanmaga asoslangan xulosalar: Gipotezalarni
+tekshirish
+3. (p‑qiymat, 𝑡) Tanlama (𝑛 = 10) 𝑥̄ = 23.4, 𝑠 = 4.8 beradi. 𝐻0 ∶ 𝜇 = 20
+(ikki tomonlama) ni tekshiring.
+
+Yechim
+𝑇 = (23.4 − 20)/(4.8/
+
+√
+
+10) = 2.237, 𝑑𝑓 = 9. p‑qiymat
+
+= 2 𝑝𝑡(−|2.237|, 9) ≈ 0.052.
+4. (Ulush sinovi) 𝑛 = 150 da 𝑥 = 57 muvaffaqiyat. 𝐻0 ∶ 𝑝 = 0.5 (ikki
+tomonlama). Wald 𝑧 ni prop.test bilan solishtiring.
+
+Yechim
+𝑧 = (0.38 − 0.5)/√0.5 ⋅ 0.5/150 = −2.94, ikki tomonlama p ≈ 0.0033.
+prop.test skor‑sinovdan foydalanadi; p‑qiymat yaqin, lekin aynan bir xil
+emas.
+5. (Quvvat rejalashtirish) Ikki tomonlama 𝑧‑sinovda 𝜎 = 10, 𝜇0 = 100,
+𝜇1 = 103, quvvat 0.8 va 𝛼 = 0.05. 𝑛 ni toping.
+Yechim
+n_for_power_z(.8,10,100,103,.05,TRUE) dan foydalaning; funksiya
+kerakli 𝑛 ni beradi (yuqoriga yaxlitlang).
+6. (Dispersiya sinovi — yo‘nalish) 𝐻0 ∶ 𝜎2 = 16 bo‘lsa, ko‘proq
+o‘zgaruvchanlikni tekshirish qaysi muqobilga to‘g‘ri keladi? Qaysi
+dum?
+
+Yechim
+𝐻1 ∶ 𝜎2 > 16; katta 𝜒2 qiymatlar (o‘ng dum)da rad etiladi.
+# 9.11 Ilova: foydali R one‑liner’lar
+```{r}
+# z va t uchun kritik qiymatlar
+z_star <- function(conf.level = 0.95) qnorm(1 - (1 - conf.level)/2)
+t_star <- function(df, conf.level = 0.95) qt(1 - (1 - conf.level)/2,
+df)
+# bir tanlamali effekt kattaligi (Koen d)
+cohen_d <- function(x, mu0) {
+(mean(x) - mu0)/sd(x)
+}
+# p‑qiymat bo'yicha qaror
+decide <- function(p, alpha = 0.05) ifelse(p < alpha, "Reject H0",
+"Fail to reject H0")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
