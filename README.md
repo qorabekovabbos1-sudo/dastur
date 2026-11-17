@@ -1,0 +1,2 @@
+# dastur
+tahlil uchun dastur
